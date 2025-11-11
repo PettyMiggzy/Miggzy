@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>$MIGGZY — Tournament</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#0b0f1a"/>
+  <meta name="description" content="Join MIGGZY tournaments on Base. Approve. Join. Win."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>">
+  <style>
+    :root { --bg:#070a12; --card:#0c1220; --muted:#9fb3c8; --text:#eaf2ff; --accent:#69e2ff; --border:#1a2436; --ok:#3ddc84; --warn:#ffd166; --err:#ff6b6b; }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    a{color:var(--accent);text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px}
+    .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#69e2ff,#8a7dff)}
+    .brand h1{font-size:18px;color:var(--text);margin:0}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.02),transparent 60%),var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
+    .h{color:var(--text);font-weight:600;margin:0 0 6px 0}
+    .muted{color:var(--muted);font-size:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button, select{background:#0e182b;color:var(--text);border:1px solid #203150;border-radius:10px;padding:10px 14px;cursor:pointer}
+    button:hover{background:#12203a} button:disabled{opacity:.5;cursor:not-allowed}
+    .cta{background:linear-gradient(135deg,#69e2ff,#8a7dff);border:none;color:#001428;font-weight:700}
+    .status{min-height:24px;color:var(--muted);margin-top:10px}
+    .status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.warn{color:var(--warn)}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid #213354;border-radius:999px;background:#0b1627;font-size:12px;color:#bcd1ee}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:820px){.grid2{grid-template-columns:1fr}}
+    .stat{background:#0a1322;border:1px dashed #12213a;border-radius:14px;padding:14px}
+    .stat .label{color:var(--muted);font-size:12px}
+    .stat .value{color:var(--text);font-size:20px;font-weight:600;margin-top:4px}
+    .kbd{padding:2px 6px;border:1px solid #23314c;border-radius:6px;background:#0c1627;font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px;color:#d8e7ff}
+    .footer{margin-top:22px;color:var(--muted);font-size:12px;text-align:center}
+  </style>
+  <!-- Load local, browser-safe ethers v5 UMD -->
+<script src="assets/js/ethers-5.7.2.min.js"></script>
+
+<!-- Quick sanity check; leave this in for now -->
+<script>
+  if (!window.ethers) {
+    document.body.insertAdjacentHTML('afterbegin', '<div style="padding:12px;background:#300;color:#fff">❌ ethers.js not loaded</div>');
+  } else {
+    console.log('ethers loaded:', ethers.version);
+  }
+</script>
+
+</head>
+<body>
+  <div class="wrap">
+    <!-- Top bar -->
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">🎲</div>
+        <h1>$MIGGZY — Tournament</h1>
+      </div>
+      <div class="row">
+        <a href="/" class="pill">← Back to site</a>
+        <span class="pill">Base: <span id="chainName">Unknown</span></span>
+        <span class="pill">Wallet: <span id="addrShort">—</span></span>
+      </div>
+    </div>
+
+    <!-- Join card -->
+    <div class="card" style="margin-bottom:16px">
+      <h2 class="h">Join the Tournament</h2>
+      <p class="muted">Entry is <b>100,000 MIGGZY</b> on Base. Approve once, then Join. Contracts are verified.</p>
+
+      <div class="row" style="margin:12px 0">
+        <select id="walletPicker" title="Choose wallet"></select>
+        <button id="connectBtn" class="cta">Connect Wallet</button>
+        <button id="approveBtn" disabled>Approve 100,000 MIGGZY</button>
+        <button id="joinBtn" disabled>Join</button>
+        <button id="refreshBtn" title="Refresh">↻</button>
+      </div>
+
+      <div id="status" class="status">Not connected.</div>
+
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat">
+          <div class="label">Your MIGGZY Balance</div>
+          <div class="value" id="balTok">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Allowance to Tournament Manager</div>
+          <div class="value" id="allowTok">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live info -->
+    <div class="card">
+      <h2 class="h">Live Tournament Info</h2>
+      <p class="muted">Pulled directly from chain (Base mainnet).</p>
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat">
+          <div class="label">Current Prize Pool (MIGGZY)</div>
+          <div class="value" id="prizePool">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Players Joined</div>
+          <div class="value" id="playerCount">—</div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:10px">
+        Token <a id="tokenLink" class="kbd" target="_blank" rel="noopener"></a> ·
+        TM <a id="tmLink" class="kbd" target="_blank" rel="noopener"></a>
+      </p>
+    </div>
+
+    <div class="footer">© <span id="y"></span> MIGGZY • Verified on Base</div>
+  </div>
+
+<script>
+/*** CONFIG ***/
+const TOKEN_ADDR = "0x11D0b2013422fF2cF98F45E465fc1b060866564D"; // MIGGZY
+const TM_ADDR    = "0x54dA76d0855E0c5Ee6438cB75E2F16dA93D6990D"; // TournamentManagerFixed (100k entry)
+const ENTRY_TOKENS = "100000";
+const DEC = 18;
+
+const BASE = {
+  chainId: "0x2105", // 8453
+  chainName: "Base Mainnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: ["https://mainnet.base.org"],
+  blockExplorerUrls: ["https://basescan.org"]
+};
+
+const ERC20_ABI = [
+  { name:'name',     type:'function', stateMutability:'view',  inputs:[], outputs:[{type:'string'}] },
+  { name:'symbol',   type:'function', stateMutability:'view',  inputs:[], outputs:[{type:'string'}] },
+  { name:'decimals', type:'function', stateMutability:'view',  inputs:[], outputs:[{type:'uint8'}] },
+  { name:'balanceOf',type:'function', stateMutability:'view',  inputs:[{name:'owner',type:'address'}], outputs:[{type:'uint256'}] },
+  { name:'allowance',type:'function', stateMutability:'view',  inputs:[{name:'owner',type:'address'},{name:'spender',type:'address'}], outputs:[{type:'uint256'}] },
+  { name:'approve',  type:'function', stateMutability:'nonpayable', inputs:[{name:'spender',type:'address'},{name:'value',type:'uint256'}], outputs:[{type:'bool'}] },
+];
+const TM_ABI = [
+  { name:'join', type:'function', stateMutability:'nonpayable', inputs:[], outputs:[] },
+  { name:'playerCount', type:'function', stateMutability:'view', inputs:[], outputs:[{type:'uint256'}] }
+];
+
+const $ = (id)=>document.getElementById(id);
+const fmtAddr = (a)=> a ? (a.slice(0,6)+"…"+a.slice(-4)) : "—";
+function msg(t,cls){ const el=$('status'); el.className='status'+(cls?(' '+cls):''); el.innerHTML=t; console.log(t); }
+document.getElementById('y').textContent = new Date().getFullYear();
+
+let selectedProvider=null, browserProvider, signer, addr, token, tm;
+
+/*** Provider discovery (prefer MetaMask, but allow others) ***/
+function providerLabel(p){
+  if (p?.isMetaMask) return "MetaMask";
+  if (p?.isTrust) return "Trust Wallet";
+  if (p?.isCoinbaseWallet) return "Coinbase Wallet";
+  if (p?.isBraveWallet) return "Brave Wallet";
+  if (p?.isOkxWallet) return "OKX Wallet";
+  return p?.name || "Injected Wallet";
+}
+
+function populatePicker(list){
+  const picker = $('walletPicker');
+  picker.innerHTML="";
+  list.forEach((p,i)=>{
+    const opt=document.createElement('option');
+    opt.value=String(i);
+    opt.textContent=providerLabel(p);
+    picker.appendChild(opt);
+  });
+  let mmIndex = list.findIndex(p=>p?.isMetaMask);
+  if (mmIndex === -1) mmIndex = 0;
+  picker.value = String(Math.max(0, mmIndex));
+  selectedProvider = list[mmIndex] || list[0] || null;
+}
+
+function discoverProviders(){
+  const providers=[];
+  if (window.ethereum?.providers?.length) providers.push(...window.ethereum.providers);
+  else if (window.ethereum) providers.push(window.ethereum);
+
+  // EIP-6963
+  window.addEventListener('eip6963:announceProvider',(e)=>{
+    const p=e.detail?.provider; if(!p) return;
+    if (!providers.includes(p)) providers.push(p);
+    populatePicker(providers);
+  });
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+  if (providers.length===0 && !window.ethereum) {
+    msg("❌ No wallet detected. <a href='https://metamask.io/download' target='_blank'>Install MetaMask</a>.", "err");
+  } else {
+    populatePicker(providers);
+  }
+}
+$('walletPicker').addEventListener('change',(e)=>{
+  const providers = (window.ethereum?.providers?.length) ? window.ethereum.providers : [window.ethereum];
+  selectedProvider = providers[Number(e.target.value)] || selectedProvider;
+});
+
+/*** Chain helpers ***/
+async function ensureBaseOrAdd(eth){
+  const id = await eth.request({ method: "eth_chainId" });
+  $('chainName').textContent = (id === BASE.chainId) ? "Base Mainnet" : ("Unknown ("+id+")");
+  if (id !== BASE.chainId) {
+    try{
+      await eth.request({ method: "wallet_switchEthereumChain", params:[{ chainId: BASE.chainId }] });
+      $('chainName').textContent = "Base Mainnet";
+    }catch(e){
+      if (e?.code === 4902 || /unrecognized chain/i.test(e?.message||"")) {
+        await eth.request({ method: "wallet_addEthereumChain", params:[BASE] });
+        $('chainName').textContent = "Base Mainnet";
+      } else throw e;
+    }
+  }
+}
+
+/*** App logic ***/
+async function connect(){
+  try{
+    discoverProviders();
+    if (!selectedProvider) { msg("❌ No wallet detected.", "err"); return; }
+    await ensureBaseOrAdd(selectedProvider);
+
+    browserProvider = new ethers.BrowserProvider(selectedProvider);
+    await browserProvider.send("eth_requestAccounts", []);
+    signer = await browserProvider.getSigner();
+    addr = await signer.getAddress();
+
+    token = new ethers.Contract(TOKEN_ADDR, ERC20_ABI, signer);
+    tm    = new ethers.Contract(TM_ADDR, TM_ABI, signer);
+
+    $('addrShort').textContent = fmtAddr(addr);
+    $('tokenLink').textContent = TOKEN_ADDR; $('tokenLink').href = `https://basescan.org/token/${TOKEN_ADDR}`;
+    $('tmLink').textContent    = TM_ADDR;    $('tmLink').href    = `https://basescan.org/address/${TM_ADDR}`;
+
+    msg(`✅ Connected: <span class="kbd">${fmtAddr(addr)}</span> via <span class="kbd">${providerLabel(selectedProvider)}</span>`, "ok");
+    $('approveBtn').disabled = false;
+    await Promise.all([refreshWalletStats(), refreshLiveStats()]);
+  }catch(e){
+    msg("❌ Connect failed: " + (e?.shortMessage || e?.message || e), "err");
+  }
+}
+
+async function refreshWalletStats(){
+  try{
+    const rawBal = await token.balanceOf(addr);
+    const rawAllow = await token.allowance(addr, TM_ADDR);
+    const entryUnits = ethers.parseUnits(ENTRY_TOKENS, DEC);
+    const balTok = ethers.formatUnits(rawBal, DEC);
+    const allowTok = ethers.formatUnits(rawAllow, DEC);
+
+    $('balTok').textContent = balTok;
+    $('allowTok').textContent = allowTok;
+
+    const okBal = (rawBal >= entryUnits);
+    const okAllow = (rawAllow >= entryUnits);
+    $('approveBtn').disabled = okAllow;
+    $('joinBtn').disabled = !(okBal && okAllow);
+  }catch(e){
+    msg("❌ Refresh wallet failed: " + (e?.shortMessage || e?.message || e), "err");
+  }
+}
+
+async function refreshLiveStats(){
+  try{
+    // prize pool = token.balanceOf(TM)
+    const rawPool = await token.balanceOf(TM_ADDR);
+    $('prizePool').textContent = ethers.formatUnits(rawPool, DEC);
+
+    // player count (try; older contract might omit)
+    try {
+      const count = await tm.playerCount();
+      $('playerCount').textContent = String(count);
+    } catch {
+      $('playerCount').textContent = "—";
+    }
+  }catch(e){
+    msg("❌ Refresh live stats failed: " + (e?.shortMessage || e?.message || e), "err");
+  }
+}
+
+async function approve(){
+  try{
+    const amount = ethers.parseUnits(ENTRY_TOKENS, DEC);
+    const tx = await token.approve(TM_ADDR, amount);
+    msg("⏳ Approving… awaiting confirmation…");
+    await tx.wait();
+    msg("✅ Approved.", "ok");
+    await refreshWalletStats();
+  }catch(e){
+    msg("❌ Approve failed: " + (e?.shortMessage || e?.message || e), "err");
+  }
+}
+
+async function join(){
+  try{
+    const tx = await tm.join();
+    msg("⏳ Joining… awaiting confirmation…");
+    await tx.wait();
+    msg("🎉 Joined! You’re in.", "ok");
+    await Promise.all([refreshWalletStats(), refreshLiveStats()]);
+  }catch(e){
+    msg("❌ Join failed: " + (e?.shortMessage || e?.message || e), "err");
+  }
+}
+
+document.getElementById('connectBtn').onclick = connect;
+document.getElementById('approveBtn').onclick = approve;
+document.getElementById('joinBtn').onclick = join;
+document.getElementById('refreshBtn').onclick = ()=>{ refreshWalletStats(); refreshLiveStats(); };
+</script>
+</body>
+</html>

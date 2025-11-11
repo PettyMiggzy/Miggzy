@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Miggzy — Poker (Texas Hold’em)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{
+      --bg:#0A1020; --panel:#0E1930; --ink:#EAF2FF; --muted:#9DB5D9;
+      --blue:#2BC0FF; --teal:#14B8A6; --line:rgba(255,255,255,.08);
+    }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    a{text-decoration:none;color:#BEE6FF}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:rgba(10,16,32,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
+    .logo{font-weight:900;letter-spacing:.6px}
+    .links{display:flex;gap:18px;align-items:center}
+    .btn{display:inline-block;background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:10px 16px;border-radius:12px;font-weight:800}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .addr{font-weight:700;color:#AEE7FF}
+    .p-wrap{max-width:1100px;margin:0 auto;padding:24px}
+    .p-card{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
+    .p-table{background:radial-gradient(600px 300px at 50% -10%,rgba(43,192,255,.12),transparent),var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;position:relative;min-height:360px}
+    .p-chip{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:#0A1020}
+    .p-seat{position:absolute;display:flex;flex-direction:column;align-items:center;font-size:13px;opacity:.95}
+    .p-seat .stack{opacity:.85;margin-top:4px}
+    .p-board{display:flex;gap:10px;justify-content:center;margin:14px 0}
+    .card-ui{width:56px;height:78px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0b1228;display:grid;place-items:center;font-weight:800}
+    .footer{text-align:center;opacity:.85;padding:28px;border-top:1px solid var(--line);margin-top:24px}
+    .ok{color:#27ae60}.warn{color:#ffd166}.err{color:#ff6b6b}
+    .p-log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-height:160px;overflow:auto;opacity:.9}
+  </style>
+</head>
+<body>
+<header class="nav">
+  <div class="brand">
+    <img src="assets/images/hero.png" alt="Miggzy" onerror="this.style.display='none'">
+    <span class="logo">MIGGZY</span>
+  </div>
+  <nav class="links">
+    <a href="index.html">Home</a>
+    <a href="casino.html">Casino</a>
+    <a href="poker.html" class="active">Poker</a>
+    <div class="cta-small" style="display:flex;gap:10px;align-items:center">
+      <a class="btn" id="approveBtn" href="javascript:void(0)" disabled>Approve 100K</a>
+      <a class="btn ghost" id="joinBtn" href="javascript:void(0)" disabled>Join Table</a>
+      <a class="btn ghost" id="connectBtn" href="#">Connect Wallet</a>
+      <span class="addr" id="addr"></span>
+    </div>
+  </nav>
+</header>
+
+<main class="p-wrap">
+  <h1>Texas Hold’em</h1>
+  <p>Buy-in <b>100,000 MIGGZY</b> — Approve once, then Join.</p>
+
+  <section class="p-card">
+    <div>Your MIGGZY <b id="balTok">—</b> · Allowance → TM <b id="allowTok">—</b> · Pool <b id="poolTok">—</b></div>
+    <div id="status" style="margin-top:8px;opacity:.9">Not connected.</div>
+  </section>
+
+  <section class="p-table" id="table">
+    <div class="p-seat" style="left:50%;transform:translateX(-50%);bottom:8px;text-align:center">
+      <div>YOU</div><div class="stack" id="hero-stack">Stack: 1000</div><div id="hero-cards" class="p-board"></div>
+    </div>
+    <div class="p-seat" style="left:10%;top:18%"><div>BOT 1</div><div class="stack" id="b1-stack">Stack: 1000</div></div>
+    <div class="p-seat" style="right:10%;top:18%"><div>BOT 2</div><div class="stack" id="b2-stack">Stack: 1000</div></div>
+    <div style="position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center">
+      <div class="p-chip">Pot: <span id="pot">0</span></div>
+      <div class="p-board" id="board"></div>
+    </div>
+  </section>
+
+  <section class="p-card">
+    <button class="btn" id="btn-deal" disabled>Deal</button>
+    <button class="btn ghost" id="btn-check" disabled>Check / Call</button>
+    <button class="btn ghost" id="btn-bet" disabled>Bet 20</button>
+    <button class="btn ghost" id="btn-fold" disabled>Fold</button>
+    <div class="p-log" id="log" style="margin-top:8px"></div>
+  </section>
+</main>
+
+<footer class="footer">© 2025 Miggzy • Poker</footer>
+
+<!-- ✅ Browser-safe ethers v5.7.2 UMD -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"
+        integrity="sha384-qX4G/kYwRjKxak5bYKlAStH5e4Hw+Z9Idm/bD1aRMoAbqmkUgKMZf0O6+ANg6Xo5"
+        crossorigin="anonymous"></script>
+
+<script>
+(async ()=>{
+  if(!window.ethers){ alert("ethers.js failed to load."); return; }
+
+  const TOKEN_ADDR="0x11D0b2013422fF2cF98F45E465fc1b060866564D";
+  const TM_ADDR   ="0x54dA76d0855E0c5Ee6438cB75E2F16dA93D6990D";
+  const ENTRY_TOKENS="100000", DEC=18;
+
+  const ERC20_ABI=[
+    "function balanceOf(address) view returns(uint256)",
+    "function allowance(address,address) view returns(uint256)",
+    "function approve(address,uint256) returns(bool)"
+  ];
+  const TM_ABI=[
+    "function join()",
+    "function playerCount() view returns(uint256)"
+  ];
+
+  const $=id=>document.getElementById(id);
+  const status=$("status"),connectBtn=$("connectBtn"),approveBtn=$("approveBtn"),joinBtn=$("joinBtn"),addrEl=$("addr");
+  let provider,signer,addr,token,tm,joined=false;
+  const short=a=>a?a.slice(0,6)+"…"+a.slice(-4):"";
+
+  async function ensureBase(eth){
+    const id=await eth.request({method:"eth_chainId"});
+    if(id!=="0x2105"){
+      try{await eth.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x2105"}]});}
+      catch(e){
+        if(e.code===4902){
+          await eth.request({method:"wallet_addEthereumChain",params:[{chainId:"0x2105",chainName:"Base",nativeCurrency:{name:"Ether",symbol:"ETH",decimals:18},rpcUrls:["https://mainnet.base.org"],blockExplorerUrls:["https://basescan.org"]}]});
+        } else throw e;
+      }
+    }
+  }
+
+  async function connect(){
+    if(!window.ethereum){alert("Install MetaMask.");return;}
+    try{
+      await ensureBase(window.ethereum);
+      provider=new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts",[]);
+      signer=provider.getSigner();
+      addr=await signer.getAddress();
+      addrEl.textContent=short(addr);addrEl.title=addr;
+      status.textContent="✅ Connected.";
+      token=new ethers.Contract(TOKEN_ADDR,ERC20_ABI,signer);
+      tm   =new ethers.Contract(TM_ADDR,TM_ABI,signer);
+      await refresh();
+    }catch(e){status.textContent="❌ Connect failed: "+(e.message||e);}
+  }
+
+  async function refresh(){
+    const [bal,allow,pool,players]=await Promise.all([
+      token.balanceOf(addr),
+      token.allowance(addr,TM_ADDR),
+      token.balanceOf(TM_ADDR),
+      tm.playerCount().catch(()=>0)
+    ]);
+    $("balTok").textContent=ethers.utils.formatUnits(bal,DEC);
+    $("allowTok").textContent=ethers.utils.formatUnits(allow,DEC);
+    $("poolTok").textContent=ethers.utils.formatUnits(pool,DEC);
+    const needAllow=allow.lt(ethers.utils.parseUnits(ENTRY_TOKENS,DEC));
+    approveBtn.disabled=!needAllow;
+    joinBtn.disabled=needAllow;
+  }
+
+  async function approve(){
+    try{
+      const amt=ethers.utils.parseUnits(ENTRY_TOKENS,DEC);
+      const tx=await token.approve(TM_ADDR,amt);
+      status.textContent="⏳ Approving…";
+      await tx.wait();
+      status.textContent="✅ Approved 100,000 MIGGZY.";
+      await refresh();
+    }catch(e){status.textContent="❌ Approve failed: "+(e.message||e);}
+  }
+
+  async function join(){
+    try{
+      const tx=await tm.join();
+      status.textContent="⏳ Joining…";
+      await tx.wait();
+      status.textContent="🎉 Joined table!";
+      joined=true;
+      enablePlay(true);
+      await refresh();
+    }catch(e){status.textContent="❌ Join failed: "+(e.message||e);}
+  }
+
+  connectBtn.onclick=connect;
+  approveBtn.onclick=approve;
+  joinBtn.onclick=join;
+
+  // --- Simple local poker demo ---
+  const suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+  let deck=[],pot=0,heroCards=[],bot1=[],bot2=[];
+  function log(m){$("log").insertAdjacentHTML('afterbegin',`<div>${new Date().toLocaleTimeString()} — ${m}</div>`);}
+  function freshDeck(){deck=[];for(const s of suits)for(const r of ranks)deck.push(r+s);for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}}
+  function deal(n){const o=[];while(n--)o.push(deck.pop());return o;}
+  function cardEl(txt){const d=document.createElement('div');d.className='card-ui';d.textContent=txt;return d;}
+  function startHand(){freshDeck();$("board").innerHTML='';$("hero-cards").innerHTML='';heroCards=deal(2);heroCards.forEach(c=>$("hero-cards").appendChild(cardEl(c)));log("New hand started.");}
+  function enablePlay(on){['btn-deal','btn-check','btn-bet','btn-fold'].forEach(id=>$(''+id).disabled=!on);}
+  $("btn-deal").onclick=startHand;
+  $("btn-check").onclick=()=>log("You check.");
+  $("btn-bet").onclick=()=>log("You bet 20.");
+  $("btn-fold").onclick=()=>log("You fold.");
+})();
+</script>
+</body>
+</html>
