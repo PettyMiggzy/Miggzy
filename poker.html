@@ -176,17 +176,18 @@
     <div class="live-seat live-hero">
       <div class="live-name">YOU</div>
       <div class="row" id="hero-cards"></div>
-      <div class="stack">Stack: <span id="heroStack">1000</span></div>
+      <div class="stack">Stack: <span id="heroStack">100000</span></div>
     </div>
     <div class="live-seat live-opp1">
       <div class="live-name" id="opp1Name">Opponent 1</div>
       <div class="row" id="opp1-cards"></div>
-      <div class="stack">Stack: <span id="b1Stack">1000</span></div>
+      <div class="stack">Stack: <span id="b1Stack">100000
+      </span></div>
     </div>
     <div class="live-seat live-opp2">
       <div class="live-name" id="opp2Name">Opponent 2</div>
       <div class="row" id="opp2-cards"></div>
-      <div class="stack">Stack: <span id="b2Stack">1000</span></div>
+      <div class="stack">Stack: <span id="b2Stack">100000</span></div>
     </div>
 
     <!-- Real board + pot -->
@@ -296,7 +297,7 @@
 
   /* ======= Poker engine (same logic, matches 3 seats) ======= */
   const suits=['♠','♥','♦','♣'], ranks=['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
-  let deck=[], board=[], hero=[], bot1=[], bot2=[], pot=0, heroStack=1000, b1Stack=1000, b2Stack=1000, street='pre', betToCall=0;
+  let deck=[], board=[], hero=[], bot1=[], bot2=[], pot=0, heroStack=100000, b1Stack=100000, b2Stack=100000, street='pre', betToCall=0;
 
   function updateStacks(){ $("heroStack").textContent=heroStack; $("b1Stack").textContent=b1Stack; $("b2Stack").textContent=b2Stack; $("pot").textContent=pot; }
   function suitColor(s){ return (s==='♥'||s==='♦')?'red':'black'; }
@@ -336,3 +337,4 @@
 </script>
 </body>
 </html>
+
