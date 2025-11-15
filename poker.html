@@ -1,36 +1,114 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Miggzy — Poker (Texas Hold’em)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <style>
-    :root{
-      --bg:#0A1020; --panel:#0E1930; --ink:#EAF2FF; --muted:#9DB5D9;
-      --blue:#2BC0FF; --teal:#14B8A6; --line:rgba(255,255,255,.08);
-    }
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-    a{text-decoration:none;color:#BEE6FF}
-    .nav{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:rgba(10,16,32,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand img{width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
-    .logo{font-weight:900;letter-spacing:.6px}
-    .links{display:flex;gap:18px;align-items:center}
-    .btn{display:inline-block;background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:10px 16px;border-radius:12px;font-weight:800}
-    .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
-    .addr{font-weight:700;color:#AEE7FF}
-    .p-wrap{max-width:1100px;margin:0 auto;padding:24px}
-    .p-card{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
-    .p-table{background:radial-gradient(600px 300px at 50% -10%,rgba(43,192,255,.12),transparent),var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;position:relative;min-height:360px}
-    .p-chip{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:#0A1020}
-    .p-seat{position:absolute;display:flex;flex-direction:column;align-items:center;font-size:13px;opacity:.95}
-    .p-seat .stack{opacity:.85;margin-top:4px}
-    .p-board{display:flex;gap:10px;justify-content:center;margin:14px 0}
-    .card-ui{width:56px;height:78px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:#0b1228;display:grid;place-items:center;font-weight:800}
-    .footer{text-align:center;opacity:.85;padding:28px;border-top:1px solid var(--line);margin-top:24px}
-    .ok{color:#27ae60}.warn{color:#ffd166}.err{color:#ff6b6b}
-    .p-log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-height:160px;overflow:auto;opacity:.9}
-  </style>
+<meta charset="utf-8"/>
+<title>Miggzy — Texas Hold’em</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+  :root{
+    --bg:#0A1020; --ink:#EAF2FF; --muted:#9DB5D9; --line:rgba(255,255,255,.08);
+    --felt:#0e7c45; --felt-dark:#0c6a3b; --white:#ffffff;
+    --blue:#2BC0FF; --teal:#14B8A6;
+  }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  a{text-decoration:none;color:#BEE6FF}
+
+  /* Top nav (site style) */
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:rgba(10,16,32,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand img{width:42px;height:42px;border-radius:10px;border:1px solid var(--line)}
+  .logo{font-weight:900;letter-spacing:.6px}
+  .links{display:flex;gap:18px;align-items:center}
+  .btn{display:inline-block;background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:10px 16px;border-radius:12px;font-weight:800}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:#EAF2FF}
+  .addr{font-weight:700;color:#AEE7FF}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px}
+  .panel{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+
+  /* ========= TABLE like the photo ========= */
+  .table-shell{position:relative;aspect-ratio: 16/9;min-height:560px;border-radius:20px;overflow:hidden;
+    background:
+      radial-gradient(140% 90% at 50% 40%, rgba(0,0,0,.35), transparent 55%),
+      linear-gradient(180deg,var(--felt),var(--felt-dark));
+    border:2px solid rgba(255,255,255,.06);
+    box-shadow:0 30px 60px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.25);
+  }
+
+  /* Big MIGGZY watermark on felt */
+  .miggzy-water{position:absolute;left:24px;top:20px;font-weight:1000;letter-spacing:.5px;
+    color:rgba(255,255,255,.13);font-size:36px;text-transform:uppercase;pointer-events:none}
+  .miggzy-water small{display:block;font-size:12px;opacity:.8;letter-spacing:.06em}
+
+  /* Board stencil (dealer) */
+  .board-stencil{position:absolute;left:50%;top:16%;transform:translateX(-50%);width:min(70%,760px);height:110px;
+    border:4px solid var(--white);border-radius:4px;display:flex;gap:8px;padding:8px;box-shadow:0 0 0 2px rgba(0,0,0,.12) inset}
+  .board-stencil .slot{flex:1;border:4px solid var(--white);border-radius:4px}
+  .title{position:absolute;left:50%;top:6%;transform:translateX(-50%);color:#fff;text-align:center}
+  .title h2{margin:0;font-size:28px;letter-spacing:.03em}
+  .title .sub{font-size:14px;opacity:.9}
+
+  /* Player seat stencils (six like the image) */
+  .seat-stencil{position:absolute;width:120px;height:160px;border:4px solid var(--white);border-radius:16px;
+    box-shadow:0 0 0 2px rgba(0,0,0,.12) inset;display:grid;place-items:center;color:#fff}
+  .seat-label{position:absolute;top:-26px;left:0;right:0;text-align:center;font-weight:900;font-size:12px;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+  /* positions around the arc */
+  .p1{left:4%;  bottom:18%; transform:rotate(-18deg)}
+  .p2{left:18%; bottom:10%; transform:rotate(-9deg)}
+  .p3{left:34%; bottom:6%;  transform:rotate(0deg)}
+  .p4{right:34%;bottom:6%;  transform:rotate(0deg)}
+  .p5{right:18%;bottom:10%; transform:rotate(9deg)}
+  .p6{right:4%; bottom:18%; transform:rotate(18deg)}
+
+  /* LIVE seats layered above stencils */
+  .live-seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff}
+  .live-name{font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+  .stack{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:999px;font-size:12px}
+  .live-hero{left:50%;bottom:10%;transform:translateX(-50%)}
+  .live-opp1{left:18%;top:52%}
+  .live-opp2{right:18%;top:52%}
+
+  /* Board (real cards) and pot readout */
+  .center{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);text-align:center}
+  .pot{display:inline-block;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);padding:6px 12px;border-radius:999px}
+  .street{display:inline-block;margin-left:8px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+  .board{display:flex;gap:10px;justify-content:center;margin:10px 0}
+
+  /* Ad slot (click → email) */
+  .ad-slot{
+    position:absolute;right:24px;top:20px;width:230px;height:72px;border:3px dashed #FFE27A;border-radius:10px;
+    display:grid;place-items:center;background:rgba(0,0,0,.18);color:#FFE27A;font-weight:900;text-align:center;
+    cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .ad-slot:hover{transform:scale(1.02);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .ad-slot small{display:block;color:#fff;font-weight:700;opacity:.85}
+
+  /* Card visuals */
+  .card-ui{
+    position:relative;width:70px;height:98px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f7f7f7);
+    border:1px solid #e7e7e7;box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.06);
+    display:grid;place-items:center;overflow:hidden;user-select:none;transform-origin:50% 60%;backface-visibility:hidden;
+  }
+  .card-ui.red{color:#D12B2B}.card-ui.black{color:#101010}
+  .card-rank{position:absolute;left:6px;top:4px;font-weight:900;font-size:18px;line-height:1}
+  .card-suit-small{position:absolute;left:7px;top:24px;font-size:14px;opacity:.9}
+  .card-rank-br{position:absolute;right:6px;bottom:4px;font-weight:900;font-size:18px;line-height:1;transform:rotate(180deg)}
+  .card-suit-small-br{position:absolute;right:7px;bottom:24px;font-size:14px;opacity:.9;transform:rotate(180deg)}
+  .card-suit{font-size:32px;opacity:.85}
+  .card-back{background:repeating-linear-gradient(45deg,#0b3b6b 0 10px,#0e4a86 10px 20px);border:1px solid #08325b;box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08)}
+
+  /* Animations */
+  @keyframes deal-pop {0%{transform:translateY(22px) scale(.92) rotate(-4deg);opacity:0}60%{transform:translateY(-4px) scale(1.02) rotate(0);opacity:1}100%{transform:translateY(0) scale(1) rotate(0);opacity:1}}
+  @keyframes board-slide {0%{transform:translateY(14px) scale(.96);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+  @keyframes flip {0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+  .animate-deal{animation:deal-pop .36s ease-out both}
+  .animate-board{animation:board-slide .28s ease-out both}
+  .flip{animation:flip .42s ease-in-out}
+  .delay-1{animation-delay:.06s}.delay-2{animation-delay:.12s}.delay-3{animation-delay:.18s}.delay-4{animation-delay:.24s}.delay-5{animation-delay:.30s}
+
+  /* Controls + log */
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .log{font-family:ui-monospace,Menlo,monospace;font-size:12px;max-height:180px;overflow:auto;opacity:.9}
+</style>
 </head>
 <body>
 <header class="nav">
@@ -42,7 +120,7 @@
     <a href="index.html">Home</a>
     <a href="casino.html">Casino</a>
     <a href="poker.html" class="active">Poker</a>
-    <div class="cta-small" style="display:flex;gap:10px;align-items:center">
+    <div style="display:flex;gap:10px;align-items:center">
       <a class="btn" id="approveBtn" href="javascript:void(0)" disabled>Approve 100K</a>
       <a class="btn ghost" id="joinBtn" href="javascript:void(0)" disabled>Join Table</a>
       <a class="btn ghost" id="connectBtn" href="#">Connect Wallet</a>
@@ -51,151 +129,210 @@
   </nav>
 </header>
 
-<main class="p-wrap">
+<main class="wrap">
   <h1>Texas Hold’em</h1>
-  <p>Buy-in <b>100,000 MIGGZY</b> — Approve once, then Join.</p>
-
-  <section class="p-card">
-    <div>Your MIGGZY <b id="balTok">—</b> · Allowance → TM <b id="allowTok">—</b> · Pool <b id="poolTok">—</b></div>
+  <div class="panel">
+    <div class="controls">
+      <div>Your MIGGZY <b id="balTok">—</b> · Allowance → TM <b id="allowTok">—</b> · Pool <b id="poolTok">—</b></div>
+      <button class="btn ghost" id="demoBtn">Start Demo (no wallet)</button>
+      <span style="opacity:.9">Token: <a id="tokenLink" target="_blank"></a> · TM: <a id="tmLink" target="_blank"></a></span>
+      <span class="street" id="modeTag">Mode: On-chain</span>
+    </div>
     <div id="status" style="margin-top:8px;opacity:.9">Not connected.</div>
-  </section>
+  </div>
 
-  <section class="p-table" id="table">
-    <div class="p-seat" style="left:50%;transform:translateX(-50%);bottom:8px;text-align:center">
-      <div>YOU</div><div class="stack" id="hero-stack">Stack: 100000</div><div id="hero-cards" class="p-board"></div>
-    </div>
-    <div class="p-seat" style="left:10%;top:18%"><div>BOT 1</div><div class="stack" id="b1-stack">Stack: 100000</div></div>
-    <div class="p-seat" style="right:10%;top:18%"><div>BOT 2</div><div class="stack" id="b2-stack">Stack: 100000</div></div>
-    <div style="position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center">
-      <div class="p-chip">Pot: <span id="pot">0</span></div>
-      <div class="p-board" id="board"></div>
-    </div>
-  </section>
+  <!-- ======== TABLE ========= -->
+  <div class="table-shell">
+    <div class="miggzy-water">MIGGZY <small>The Blue Hustler of Base</small></div>
 
-  <section class="p-card">
-    <button class="btn" id="btn-deal" disabled>Deal</button>
-    <button class="btn ghost" id="btn-check" disabled>Check / Call</button>
-    <button class="btn ghost" id="btn-bet" disabled>Bet 20</button>
-    <button class="btn ghost" id="btn-fold" disabled>Fold</button>
-    <div class="p-log" id="log" style="margin-top:8px"></div>
-  </section>
+    <!-- Email-for-ads box -->
+    <a class="ad-slot"
+       href="mailto:miggzyonbase@gmail.com?subject=Ad%20Inquiry%20-%20Poker%20Table&body=Hi%20Miggzy%20Team%2C%0A%0AI%27d%20like%20to%20rent%20the%20poker%20table%20ad%20slot.%20Please%20send%20rates%20and%20dates.%0A%0AThanks!"
+       title="Advertise on the table">
+       Advertise Here
+       <small>Click to email</small>
+    </a>
+
+    <!-- “Texas Hold’em — Dealer” title -->
+    <div class="title">
+      <h2>Texas Hold’Em</h2>
+      <div class="sub">Dealer • Donneur</div>
+    </div>
+
+    <!-- White stencil board like photo -->
+    <div class="board-stencil" aria-hidden="true">
+      <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+    </div>
+
+    <!-- Six player box stencils -->
+    <div class="seat-stencil p1"><div class="seat-label">PLAYER 1</div></div>
+    <div class="seat-stencil p2"><div class="seat-label">PLAYER 2</div></div>
+    <div class="seat-stencil p3"><div class="seat-label">PLAYER 3</div></div>
+    <div class="seat-stencil p4"><div class="seat-label">PLAYER 4</div></div>
+    <div class="seat-stencil p5"><div class="seat-label">PLAYER 5</div></div>
+    <div class="seat-stencil p6"><div class="seat-label">PLAYER 6</div></div>
+
+    <!-- Live seats/cards/pot layered above stencils -->
+    <div class="live-seat live-hero">
+      <div class="live-name">YOU</div>
+      <div class="row" id="hero-cards"></div>
+      <div class="stack">Stack: <span id="heroStack">1000</span></div>
+    </div>
+    <div class="live-seat live-opp1">
+      <div class="live-name" id="opp1Name">Opponent 1</div>
+      <div class="row" id="opp1-cards"></div>
+      <div class="stack">Stack: <span id="b1Stack">1000</span></div>
+    </div>
+    <div class="live-seat live-opp2">
+      <div class="live-name" id="opp2Name">Opponent 2</div>
+      <div class="row" id="opp2-cards"></div>
+      <div class="stack">Stack: <span id="b2Stack">1000</span></div>
+    </div>
+
+    <!-- Real board + pot -->
+    <div class="center">
+      <span class="pot">Pot: <span id="pot">0</span></span>
+      <span class="street">Street: <span id="street">—</span></span>
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="controls">
+      <button class="btn" id="btn-deal" disabled>Deal</button>
+      <button class="btn ghost" id="btn-check" disabled>Check / Call</button>
+      <button class="btn ghost" id="btn-bet" disabled>Bet 20</button>
+      <button class="btn ghost" id="btn-fold" disabled>Fold</button>
+    </div>
+    <div class="log" id="log" style="margin-top:8px"></div>
+  </div>
 </main>
 
-<footer class="footer">© 2025 Miggzy • Poker</footer>
+<footer class="wrap" style="opacity:.75;padding-bottom:40px">© 2025 MIGGZY — Verified on Base</footer>
 
-<!-- ✅ Browser-safe ethers v5.7.2 UMD -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"
-        integrity="sha384-qX4G/kYwRjKxak5bYKlAStH5e4Hw+Z9Idm/bD1aRMoAbqmkUgKMZf0O6+ANg6Xo5"
-        crossorigin="anonymous"></script>
+<!-- ethers v5 with fallbacks -->
+<script>
+(function(){
+  var i=0,urls=[
+    "https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js",
+    "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js",
+    "https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"
+  ];
+  function next(){ if(window.ethers) return;
+    if(i>=urls.length){ console.warn("ethers failed to load"); return;}
+    var s=document.createElement("script"); s.src=urls[i++]; s.onload=function(){ if(!window.ethers) next(); };
+    s.onerror=next; document.head.appendChild(s);
+  } next();
+})();
+</script>
 
 <script>
 (async ()=>{
-  if(!window.ethers){ alert("ethers.js failed to load."); return; }
-
-  const TOKEN_ADDR="0x11D0b2013422fF2cF98F45E465fc1b060866564D";
-  const TM_ADDR   ="0x54dA76d0855E0c5Ee6438cB75E2F16dA93D6990D";
-  const ENTRY_TOKENS="100000", DEC=18;
-
-  const ERC20_ABI=[
-    "function balanceOf(address) view returns(uint256)",
-    "function allowance(address,address) view returns(uint256)",
-    "function approve(address,uint256) returns(bool)"
-  ];
-  const TM_ABI=[
-    "function join()",
-    "function playerCount() view returns(uint256)"
-  ];
-
   const $=id=>document.getElementById(id);
-  const status=$("status"),connectBtn=$("connectBtn"),approveBtn=$("approveBtn"),joinBtn=$("joinBtn"),addrEl=$("addr");
-  let provider,signer,addr,token,tm,joined=false;
-  const short=a=>a?a.slice(0,6)+"…"+a.slice(-4):"";
+  const status=$("status"), modeTag=$("modeTag");
+  function log(m){$("log").insertAdjacentHTML('afterbegin',`<div>${new Date().toLocaleTimeString()} — ${m}</div>`);}
+  function setBtns(on){["btn-deal","btn-check","btn-bet","btn-fold"].forEach(i=>$(i).disabled=!on);}
+  function setStreet(s){$("street").textContent=s;}
 
+  /* On-chain wiring */
+  const TOKEN_ADDR="0x11D0b2013422fF2cF98F45E465fc1b060866564D";
+  const TM_ADDR   ="0xC7e56748DA2DFb69Ca38421F6b96eD18CC26E281";
+  const ENTRY_TOKENS="100000", DEC=18;
+  $("tokenLink").href=`https://basescan.org/token/${TOKEN_ADDR}`; $("tokenLink").textContent=TOKEN_ADDR;
+  $("tmLink").href=`https://basescan.org/address/${TM_ADDR}`; $("tmLink").textContent=TM_ADDR;
+
+  const NAMES=["AceHighAndy","NeoGrinder","MaverickMigs","BlueHustle","StackJammer","RiverKing","BaseBandit","CoinCowboy","RugDodger","GG4roll"];
+  const opp1=NAMES[Math.floor(Math.random()*NAMES.length)];
+  let opp2=NAMES[Math.floor(Math.random()*NAMES.length)];
+  if(opp2===opp1) opp2=NAMES[(NAMES.indexOf(opp1)+3)%NAMES.length];
+  $("opp1Name").textContent=opp1; $("opp2Name").textContent=opp2;
+
+  for(let t=0;t<80 && !window.ethers;t++) await new Promise(r=>setTimeout(r,50));
+  function getEthereum(){const eth=window.ethereum; if(!eth) return null; if(eth.providers){const mm=eth.providers.find(p=>p.isMetaMask); return mm||eth.providers[0];} return eth;}
   async function ensureBase(eth){
-    const id=await eth.request({method:"eth_chainId"});
-    if(id!=="0x2105"){
-      try{await eth.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x2105"}]});}
-      catch(e){
-        if(e.code===4902){
-          await eth.request({method:"wallet_addEthereumChain",params:[{chainId:"0x2105",chainName:"Base",nativeCurrency:{name:"Ether",symbol:"ETH",decimals:18},rpcUrls:["https://mainnet.base.org"],blockExplorerUrls:["https://basescan.org"]}]});
-        } else throw e;
-      }
-    }
+    let id; try{ id=await eth.request({method:"eth_chainId"});}catch{ try{const net=await eth.request({method:"net_version"}); id="0x"+parseInt(net,10).toString(16);}catch{ id="0x0";}}
+    if(id!=="0x2105"){ try{ await eth.request({method:"wallet_switchEthereumChain",params:[{chainId:"0x2105"}]}); }
+      catch(e){ if(e && e.code===4902){ await eth.request({method:"wallet_addEthereumChain",params:[{chainId:"0x2105",chainName:"Base",nativeCurrency:{name:"Ether",symbol:"ETH",decimals:18},rpcUrls:["https://mainnet.base.org"],blockExplorerUrls:["https://basescan.org"]}]}); } else { throw e; } } }
   }
+
+  const connectBtn=$("connectBtn"), approveBtn=$("approveBtn"), joinBtn=$("joinBtn"), addrEl=$("addr");
+  if(connectBtn) connectBtn.onclick=connect;
+  if(approveBtn) approveBtn.onclick=approve;
+  if(joinBtn) joinBtn.onclick=join;
+  let provider,signer,addr,token,tm,joined=false;
 
   async function connect(){
-    if(!window.ethereum){alert("Install MetaMask.");return;}
+    const eth=getEthereum(); if(!eth){ status.textContent="❌ No wallet found. Install MetaMask."; return; }
     try{
-      await ensureBase(window.ethereum);
-      provider=new ethers.providers.Web3Provider(window.ethereum);
+      await ensureBase(eth);
+      provider=new ethers.providers.Web3Provider(eth);
       await provider.send("eth_requestAccounts",[]);
-      signer=provider.getSigner();
-      addr=await signer.getAddress();
-      addrEl.textContent=short(addr);addrEl.title=addr;
+      signer=provider.getSigner(); addr=await signer.getAddress();
+      addrEl.textContent=addr.slice(0,6)+"…"+addr.slice(-4); addrEl.title=addr;
       status.textContent="✅ Connected.";
+      const ERC20_ABI=["function balanceOf(address) view returns(uint256)","function allowance(address,address) view returns(uint256)","function approve(address,uint256) returns(bool)"];
+      const TM_ABI=["function join()","function playerCount() view returns(uint256)"];
       token=new ethers.Contract(TOKEN_ADDR,ERC20_ABI,signer);
       tm   =new ethers.Contract(TM_ADDR,TM_ABI,signer);
-      await refresh();
-    }catch(e){status.textContent="❌ Connect failed: "+(e.message||e);}
+      await refreshOnchain(); modeTag.textContent="Mode: On-chain";
+    }catch(e){ status.textContent="❌ Connect failed: "+(e?.message||e); }
   }
-
-  async function refresh(){
-    const [bal,allow,pool,players]=await Promise.all([
-      token.balanceOf(addr),
-      token.allowance(addr,TM_ADDR),
-      token.balanceOf(TM_ADDR),
-      tm.playerCount().catch(()=>0)
-    ]);
-    $("balTok").textContent=ethers.utils.formatUnits(bal,DEC);
-    $("allowTok").textContent=ethers.utils.formatUnits(allow,DEC);
-    $("poolTok").textContent=ethers.utils.formatUnits(pool,DEC);
-    const needAllow=allow.lt(ethers.utils.parseUnits(ENTRY_TOKENS,DEC));
-    approveBtn.disabled=!needAllow;
-    joinBtn.disabled=needAllow;
-  }
-
-  async function approve(){
+  async function refreshOnchain(){
     try{
-      const amt=ethers.utils.parseUnits(ENTRY_TOKENS,DEC);
-      const tx=await token.approve(TM_ADDR,amt);
-      status.textContent="⏳ Approving…";
-      await tx.wait();
-      status.textContent="✅ Approved 100,000 MIGGZY.";
-      await refresh();
-    }catch(e){status.textContent="❌ Approve failed: "+(e.message||e);}
+      const [bal,allow,pool]=await Promise.all([token.balanceOf(addr),token.allowance(addr,TM_ADDR),token.balanceOf(TM_ADDR)]);
+      $("balTok").textContent=ethers.utils.formatUnits(bal,DEC);
+      $("allowTok").textContent=ethers.utils.formatUnits(allow,DEC);
+      $("poolTok").textContent=ethers.utils.formatUnits(pool,DEC);
+      const need=allow.lt(ethers.utils.parseUnits(ENTRY_TOKENS,DEC));
+      approveBtn.disabled=!need; joinBtn.disabled=need;
+      if(!need) status.textContent="✅ Approved. Click Join to enter the table.";
+    }catch(e){ status.textContent="❌ Refresh failed: "+(e?.message||e); }
   }
+  async function approve(){ try{ const amt=ethers.utils.parseUnits(ENTRY_TOKENS,DEC); const tx=await token.approve(TM_ADDR,amt); status.textContent="⏳ Approving…"; await tx.wait(); status.textContent="✅ Approved 100,000 MIGGZY."; await refreshOnchain(); }catch(e){ status.textContent="❌ Approve failed: "+(e?.message||e); }}
+  async function join(){ try{ const tx=await tm.join(); status.textContent="⏳ Joining…"; await tx.wait(); status.textContent="🎉 Joined table!"; joined=true; setBtns(true);}catch(e){ status.textContent="❌ Join failed: "+(e?.message||e); }}
 
-  async function join(){
-    try{
-      const tx=await tm.join();
-      status.textContent="⏳ Joining…";
-      await tx.wait();
-      status.textContent="🎉 Joined table!";
-      joined=true;
-      enablePlay(true);
-      await refresh();
-    }catch(e){status.textContent="❌ Join failed: "+(e.message||e);}
+  // Demo mode
+  $("demoBtn").onclick=()=>{ joined=true; modeTag.textContent="Mode: Demo (offline)"; status.textContent="▶ Demo: no wallet needed."; setBtns(true); };
+
+  /* ======= Poker engine (same logic, matches 3 seats) ======= */
+  const suits=['♠','♥','♦','♣'], ranks=['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+  let deck=[], board=[], hero=[], bot1=[], bot2=[], pot=0, heroStack=1000, b1Stack=1000, b2Stack=1000, street='pre', betToCall=0;
+
+  function updateStacks(){ $("heroStack").textContent=heroStack; $("b1Stack").textContent=b1Stack; $("b2Stack").textContent=b2Stack; $("pot").textContent=pot; }
+  function suitColor(s){ return (s==='♥'||s==='♦')?'red':'black'; }
+  function cardFace(code){ const r=code[0],s=code[1]; const el=document.createElement('div'); el.className='card-ui '+suitColor(s); el.innerHTML=`<div class="card-rank">${r}</div><div class="card-suit-small">${s}</div><div class="card-rank-br">${r}</div><div class="card-suit-small-br">${s}</div><div class="card-suit">${s}</div>`; return el;}
+  function cardBack(){ const c=document.createElement('div'); c.className='card-ui card-back'; return c; }
+  function addAnimated(el,cls,delay){ el.classList.add(cls); if(delay) el.classList.add(delay); return el; }
+  function freshDeck(){ deck=[]; for(const s of suits) for(const r of ranks) deck.push(r+s); for(let i=deck.length-1;i>0;i--){const j=Math.random()* (i+1)|0; [deck[i],deck[j]]=[deck[j],deck[i]];} }
+  function deal(n){ const out=[]; while(n--) out.push(deck.pop()); return out; }
+  function resetHand(){ board=[]; hero=[]; bot1=[]; bot2=[]; $("board").innerHTML=''; $("hero-cards").innerHTML=''; $("opp1-cards").innerHTML=''; $("opp2-cards").innerHTML=''; pot=0; betToCall=0; street='pre'; setStreet('Preflop'); updateStacks(); }
+  function renderOppBacks(){ ["opp1-cards","opp2-cards"].forEach((id)=>{ const box=$(id); box.appendChild(addAnimated(cardBack(),'animate-deal')); box.appendChild(addAnimated(cardBack(),'animate-deal','delay-1'));}); }
+
+  function startHand(){
+    if(!joined){ alert("Join or Start Demo first."); return; }
+    freshDeck(); resetHand();
+    hero=deal(2); bot1=deal(2); bot2=deal(2);
+    hero.forEach((c,i)=>{ const el=cardFace(c); addAnimated(el,'animate-deal',i?'delay-1':''); $("hero-cards").appendChild(el);});
+    renderOppBacks();
+    // blinds 10/20 (you are BB)
+    b1Stack-=10; pot+=10; heroStack-=20; pot+=20; updateStacks();
+    log(`New hand vs ${opp1} & ${opp2}. Blinds 10/20. Pot ${pot}.`);
   }
+  async function revealBoard(cards){ for(let i=0;i<cards.length;i++){ const c=cardFace(cards[i]); addAnimated(c,'animate-board','delay-'+i); $("board").appendChild(c); await new Promise(r=>setTimeout(r,110)); } }
+  function nextStreet(){ if(street==='pre'){ street='flop'; setStreet('Flop'); const f=deal(3); board.push(...f); revealBoard(f); betToCall=0; log(`Flop ${f.join(' ')}`);} else if(street==='flop'){ street='turn'; setStreet('Turn'); const t=deal(1)[0]; board.push(t); revealBoard([t]); betToCall=0; log(`Turn ${t}`);} else if(street==='turn'){ street='river'; setStreet('River'); const r=deal(1)[0]; board.push(r); revealBoard([r]); betToCall=0; log(`River ${r}`);} else { showdown(); } }
+  function simpleRank(cards){ const cnt={}; for(const c of cards){ const r=c[0]; cnt[r]=(cnt[r]||0)+1; } const pattern=Object.values(cnt).sort((a,b)=>b-a).join(''); const scoreMap={'4':'7','32':'6','3':'5','22':'4','2':'3','21':'2','1':'1'}; const score=scoreMap[pattern]||'1'; const order=[...new Set(cards.map(c=>c[0]))].sort((a,b)=>ranks.indexOf(b)-ranks.indexOf(a)); const hi=ranks.indexOf(order[0]); return Number(score+String(hi).padStart(2,'0')); }
+  function flipOppCards(){ ["opp1-cards","opp2-cards"].forEach((id,ix)=>{ const box=$(id); box.innerHTML=''; const hand = ix? bot2 : bot1; const a=cardFace(hand[0]); const b=cardFace(hand[1]); [a,b].forEach(c=>c.classList.add('flip')); box.appendChild(a); box.appendChild(b); }); }
+  function showdown(){ flipOppCards(); const h=simpleRank([...hero,...board]), b1=simpleRank([...bot1,...board]), b2=simpleRank([...bot2,...board]); const best=Math.max(h,b1,b2); const winners=[]; if(h===best) winners.push('You'); if(b1===best) winners.push(opp1); if(b2===best) winners.push(opp2); const share=Math.floor(pot/winners.length); if(winners.includes('You')) heroStack+=share; if(winners.includes(opp1)) b1Stack+=share; if(winners.includes(opp2)) b2Stack+=share; pot=0; updateStacks(); log(`Showdown → Winners: ${winners.join(', ')} (+${share} each). Click Deal for next hand.`); setBtns(true); }
+  function botAction(name,get,set){ const stack=get(); if(betToCall===0){ if(Math.random()<0.2 && stack>=20){ set(stack-20); pot+=20; betToCall=20; log(`${name} bets 20`);} else { log(`${name} checks`);} } else { if(stack>=betToCall){ set(stack-betToCall); pot+=betToCall; log(`${name} calls ${betToCall}`);} else { log(`${name} folds`); return 'fold'; } } updateStacks(); return 'continue'; }
 
-  connectBtn.onclick=connect;
-  approveBtn.onclick=approve;
-  joinBtn.onclick=join;
+  $("btn-deal").onclick=()=>{ startHand(); setBtns(true); };
+  $("btn-check").onclick=()=>{ if(street==='river'){ showdown(); return; } if(betToCall>0){ if(heroStack>=betToCall){ heroStack-=betToCall; pot+=betToCall; log(`You call ${betToCall}`); betToCall=0; updateStacks(); } else { log('You cannot call; folding'); showdown(); return; } } else { log('You check'); } const r1=botAction(opp1,()=>b1Stack,v=>b1Stack=v); const r2=botAction(opp2,()=>b2Stack,v=>b2Stack=v); if(r1==='fold'&&r2==='fold'){ log(`${opp1} and ${opp2} folded. You win the pot.`); heroStack+=pot; pot=0; updateStacks(); return; } nextStreet(); };
+  $("btn-bet").onclick=()=>{ if(heroStack>=20){ heroStack-=20; pot+=20; betToCall=20; log('You bet 20'); updateStacks(); } else { log('Not enough stack to bet'); return; } const r1=botAction(opp1,()=>b1Stack,v=>b1Stack=v); const r2=botAction(opp2,()=>b2Stack,v=>b2Stack=v); if(r1==='fold'&&r2==='fold'){ log(`${opp1} and ${opp2} folded. You win the pot.`); heroStack+=pot; pot=0; updateStacks(); return; } nextStreet(); };
+  $("btn-fold").onclick=()=>{ log('You fold.'); if(Math.random()<0.5) b1Stack+=pot; else b2Stack+=pot; pot=0; updateStacks(); log('Hand over. Click Deal for next hand.'); };
 
-  // --- Simple local poker demo ---
-  const suits=['♠','♥','♦','♣'],ranks=['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
-  let deck=[],pot=0,heroCards=[],bot1=[],bot2=[];
-  function log(m){$("log").insertAdjacentHTML('afterbegin',`<div>${new Date().toLocaleTimeString()} — ${m}</div>`);}
-  function freshDeck(){deck=[];for(const s of suits)for(const r of ranks)deck.push(r+s);for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}}
-  function deal(n){const o=[];while(n--)o.push(deck.pop());return o;}
-  function cardEl(txt){const d=document.createElement('div');d.className='card-ui';d.textContent=txt;return d;}
-  function startHand(){freshDeck();$("board").innerHTML='';$("hero-cards").innerHTML='';heroCards=deal(2);heroCards.forEach(c=>$("hero-cards").appendChild(cardEl(c)));log("New hand started.");}
-  function enablePlay(on){['btn-deal','btn-check','btn-bet','btn-fold'].forEach(id=>$(''+id).disabled=!on);}
-  $("btn-deal").onclick=startHand;
-  $("btn-check").onclick=()=>log("You check.");
-  $("btn-bet").onclick=()=>log("You bet 20.");
-  $("btn-fold").onclick=()=>log("You fold.");
+  // Start in demo so you can instantly see the table
+  $("demoBtn").click();
 })();
 </script>
 </body>
 </html>
-
